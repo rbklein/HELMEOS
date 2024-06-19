@@ -6,15 +6,14 @@ from setup import *
 
 import FOM
 import plot
-import data
 
 u = jnp.copy(u_0)
 
-plot.plot_all(x, u)
+plot.plot_conserved(x, u)
+plot.plot_thermodynamic(x, u)
+plot.plot_entropy(x, u)
 plot.show()
 
-snapshots = data.prepare_data()
-snapshots = data.gather_data(snapshots, u, 0)
 
 time_index = 0
 while time_index < num_steps:
@@ -23,9 +22,8 @@ while time_index < num_steps:
     time_index += 1
     print(time_index * dt)
 
-    snapshots = data.gather_data(snapshots, u, time_index)
 
-plot.plot_all(x, u)
+plot.plot_conserved(x, u)
+plot.plot_thermodynamic(x, u)
 plot.show()
 
-jnp.save("snapshot_data", snapshots)

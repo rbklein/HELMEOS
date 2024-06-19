@@ -6,11 +6,10 @@
 from functools import partial
 
 from config_discretization import *
+from setup_thermodynamics import *
 
 import entropy
 import flux
-import boundary
-import discrete_gradient
 
 @jax.jit
 def jump_vec(quantity):
@@ -49,10 +48,6 @@ def minmod(delta1, delta2):
     phi = jnp.where(ratio_delta < 0, 0, ratio_delta)
     return jnp.where(phi < 1, phi, 1)
 
-    #theta = discrete_gradient.zero_by_zero(delta1, delta2)
-    #phi = jnp.where(theta < 0., 0., jnp.where(theta > 1, 1, theta))
-    #return phi
-
 def return_limiter(which_limiter):
     """
         Returns the specific limiter function that will be used for computations of the entropy dissipation operator
@@ -78,8 +73,6 @@ def first_order(u, limiter):
     """
     pass
 
-import matplotlib.pyplot as plt
-
 @partial(jax.jit, static_argnums = 1)
 def Roe_dissipation(u, limiter):
     """
@@ -92,21 +85,30 @@ def Roe_dissipation(u, limiter):
     #number of cell interfaces that are not on the boundary of the grid (including ghost cells)
     num_inner_cell_interfaces = num_ghost_cells_diss - 1
 
-    h_mean      = flux.a_mean(u[0])
-    hu_mean     = flux.a_mean(u[1])
-    vel_mean    = hu_mean / h_mean
-    vel_char    = jnp.sqrt(g * h_mean)
+    vel = u[1] / u[0]
+    vel_mean = flux.a_mean(vel)
+
+    T = thermodynamics.solve_temperature_from_conservative(u)
+
+    p               = pressure(u[0], T) # (gamma - 1) * (u[2] - 0.5 * u[1]**2 / u[0])
+    p_mean          = flux.a_mean(p)
+    rho_mean        = flux.a_mean(u[0])
+    speed_of_sound  = jnp.sqrt(gamma * p_mean / rho_mean)
+
+    E_mean = flux.a_mean(u[2])
+    H_mean = (E_mean + p_mean) / rho_mean
 
     eta         = entropy.entropy_variables(u)
     eta_jump    = jump_vec(eta)
 
     #compute eigenvector at mean state between all inner interfaces
-    R = jnp.ones((2,2,num_inner_cell_interfaces))
-    R = R.at[1,0,:].set(vel_mean - vel_char); R = R.at[1,1,:].set(vel_mean + vel_char)
+    R = jnp.ones((3,3,num_inner_cell_interfaces))
+    R = R.at[1,0,:].set(vel_mean - speed_of_sound); R = R.at[1,1,:].set(vel_mean); R = R.at[1,2,:].set(vel_mean + speed_of_sound)
+    R = R.at[2,0,:].set(H_mean - vel_mean * speed_of_sound); R = R.at[2,1,:].set(0.5 * vel_mean**2); R = R.at[2,2,:].set(H_mean + vel_mean * speed_of_sound)
 
     #compute eigenvalue matrices at mean state between all inner interfaces
-    D = jnp.zeros((2,2,num_inner_cell_interfaces))
-    D = D.at[0,0,:].set(jnp.abs(vel_mean - vel_char)); D = D.at[1,1,:].set(jnp.abs(vel_mean + vel_char))
+    D = jnp.zeros((3,3,num_inner_cell_interfaces))
+    D = D.at[0,0,:].set(jnp.abs(speed_of_sound - vel_mean)); D = D.at[1,1,:].set(jnp.abs(vel_mean)); D = D.at[2,2,:].set(jnp.abs(speed_of_sound + vel_mean))
 
     #compute inner product of entropy variable jump and eigenvector basis
     delta = mul(R.transpose(1,0,2), eta_jump)
@@ -118,10 +120,11 @@ def Roe_dissipation(u, limiter):
     limiter_mean = 0.5 * (limiter(delta_L, delta_C) + limiter(delta_R, delta_C))
 
     #compute scaling coefficient eigenvalues
-    S = jnp.zeros((2,2,num_cells + 1))
-    S = S.at[0,0,:].set(1 - limiter_mean[0,:]); S = S.at[1,1,:].set(1 - limiter_mean[1,:])
+    S = jnp.zeros((3,3,num_cells + 1))
+    S = S.at[0,0,:].set(1 - limiter_mean[0,:]); S = S.at[1,1,:].set(1 - limiter_mean[1,:]); S = S.at[2,2,:].set(1 - limiter_mean[2,:])
 
     return -mul(R[:,:,1:num_cells+2], mul(D[:,:,1:num_cells+2], mul(S, delta[:,1:num_cells+2]))) * 1/2
+
 
 def return_dissipation(which_dissipation):
     """
@@ -129,7 +132,6 @@ def return_dissipation(which_dissipation):
 
         Options:
             - Roe dissipation
-            - Laplacian (not implemented)
             - No dissipation
     """
     match which_dissipation:
@@ -139,11 +141,6 @@ def return_dissipation(which_dissipation):
             """
             assert(pad_width_diss == 2)
             dissipation = Roe_dissipation
-        case "LAPLACIAN":
-            """
-                Simple Laplacian dissipation
-            """
-            raise NotImplementedError("Laplacian dissipation has not been implemented yet")
         case "NONE":
             """
                 No dissipation

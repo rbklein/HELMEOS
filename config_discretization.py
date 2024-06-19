@@ -4,29 +4,7 @@
     Discretization details:
         - Cell-centered finite volume method
         - Boundary conditions are implemented via ghost cells
-        - Non-flat bottom topography can be included
-
-    Entropy violating Riemann:
-        - g = 9.81
-        - length = 25
-        - num_cells = 1000
-        - time_final = 1.0
-        - num_steps = 10000
-        - TEST_CASE = "ENTROPY_RIEMANN"
-        - TOPOGRAPHY = "FLAT"
-
-    Positivity violating Riemann:
-        - g = 9.81
-        - length = 10
-        - num_cells = 3000
-        - time_final = 0.125
-        - num_steps = 10000
-        - TEST_CASE = "POSITIVITY_RIEMANN"
-        - TOPOGRAPHY = "FLAT"
-
-    Thacker:
-        - TOPOGRAPHY = "THACKER"
-
+        - Real-gas equations of state can be used
 """
 
 import jax
@@ -44,45 +22,47 @@ match set_DTYPE:
         DTYPE = jnp.float32
 
 
-#Gravity coefficient
-g           = 9.81
-
 #Mesh [-length,length]
-length      = 10
-num_cells   = 3000
+length      = 1
+num_cells   = 1000
 dx          = 2 * length / num_cells
 x           = jnp.linspace(-length + 0.5 * dx, length - 0.5 * dx, num_cells, dtype = DTYPE)
 
 #Temporal
-time_final  = 0.125
-num_steps   = 20000
+time_final  = 0.0001
+num_steps   = 1
 dt          = time_final / num_steps
 
 #Boundary
 #padding width necessary for implementing boundary conditions
 pad_width_flux          = 1
 pad_width_diss          = 2
-pad_width_source        = 1
 
 num_ghost_cells_flux    = 2 * pad_width_flux + num_cells
 num_ghost_cells_diss    = 2 * pad_width_diss + num_cells
 
 #Initial conditions
-HEIGHT_IS_FREE_SURFACE = True
-initial_condition_params = (20.0, 15.0, 0.0, 0.0) # (2.0, 1.0, 0.0, 0.0) # 
+initial_condition_params = ()
 
-#Bottom topography
-topography_params = () # (0.5, 1) # (8.0, 1500 / 4)
+#thermodynamics (of CO2)
+gas_constant        = 8.314472
+molar_mass          = 28.96e-3              # Air: 28.96 g/mol      CO2: 44.01e-3 g/mol     
+molecular_dofs      = 5                     # Air: 5                CO2: 5              
+
+gamma               = 1.4  #should be equal to 1 + 2 / molecular_dofs according to wikipedia
+
+molar_entropy_ref   = 0.0
+T_ref               = 1.0
+rho_ref             = 1.0
 
 #Numerics
-TEST_CASE   = "POSITIVITY_RIEMANN"
-FLUX        = "FJORDHOLM"
+EOS         = "IDEAL"
+TEST_CASE   = "CHAN"
+FLUX        = "ISMAIL_ROE"
 LIMITER     = "MINMOD"
 DISSIPATION = "TECNO_ROE"
 INTEGRATOR  = "RK4"
-BOUNDARY    = "TRANSMISSIVE"
-SOURCE      = "FJORDHOLM"
-TOPOGRAPHY  = "FLAT"
+BOUNDARY    = "PERIODIC"
 
 #data
 sample_rate = 10

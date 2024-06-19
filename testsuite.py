@@ -9,20 +9,13 @@ def return_case(test_case):
         Returns initial conditions for test case given by test_case
     """
     match test_case:
-        case "DAM_BREAK":
-            initial_h = lambda x, h, params = (): jnp.where(jnp.abs(x) < 0.2, 1.5, 1) - HEIGHT_IS_FREE_SURFACE * h(x,topography_params)   
-            initial_hu = lambda x, h, params = (): x * 0.0 
-        case "DROP":
-            initial_h = lambda x, h, params = (): 0.1 * jnp.exp(-100 * x**2) + 1.0 - HEIGHT_IS_FREE_SURFACE * h(x,topography_params)  
-            initial_hu = lambda x, h, params = (): x * 0 
-        case "RIEMANN":
-            initial_h = lambda x, h, params: jnp.where(x < 0, params[0], params[1]) - HEIGHT_IS_FREE_SURFACE * h(x,topography_params)  
-            initial_hu = lambda x, h, params: jnp.where(x < 0, params[2], params[3]) * initial_h(x, h, params)
-        case "ENTROPY_RIEMANN":
-            initial_h = lambda x, h, params = (): jnp.where(jnp.abs(x) < 12.5, 1.5, 0.02) - HEIGHT_IS_FREE_SURFACE * h(x,topography_params)  
-            initial_hu = lambda x, h, params = (): x * 0.0 
-        case "POSITIVITY_RIEMANN":
-            initial_h = lambda x, h, params = (): 5 + 0 * x - HEIGHT_IS_FREE_SURFACE * h(x,topography_params)  
-            initial_hu = lambda x, h, params = (): jnp.where(x < 0.0, -35.0, 35.0) * initial_h(x, h, params)
+        case "ACOUSTIC":
+            initial_rho = lambda x, params: 1 + 0.2 * jnp.sin(2 * jnp.pi * x)
+            initial_v = lambda x, params: 1.5 + 0.2 * 1.4 * jnp.sin(2 * jnp.pi * x)
+            initial_p = lambda x, params: 1 + 0.2 * 1.4**2 * jnp.sin(2 * jnp.pi * x)
+        case "CHAN":
+            initial_rho = lambda x, params: 2 + 0.5 * jnp.exp(-100 * x**2)      
+            initial_v = lambda x, params: 1/10 * jnp.exp(-100 * x**2)           
+            initial_p = lambda x, params: initial_rho(x, params)**gamma  
 
-    return initial_h, initial_hu
+    return initial_rho, initial_v, initial_p
