@@ -46,11 +46,3 @@ def return_padder(which_boundary):
             padder = transmissive_pad
     
     return padder
-
-
-if __name__ == "__main__":
-    x = jnp.linspace(1,num_cells,num_cells)
-    xx = jnp.vstack((x,x))
-    x_pad = transmissive_pad(x[None,:],2)
-
-    print(x_pad)

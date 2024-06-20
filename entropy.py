@@ -29,7 +29,7 @@ def entropy_variables(u):
     eta3 = 1 / T
 
     return jnp.array([eta1, eta2, eta3], dtype=DTYPE)
-
+    
 @jax.jit
 def conservative_variables(eta):
     """

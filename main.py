@@ -14,7 +14,6 @@ plot.plot_thermodynamic(x, u)
 plot.plot_entropy(x, u)
 plot.show()
 
-
 time_index = 0
 while time_index < num_steps:
     u = step(u, FOM.dudt)

@@ -7,9 +7,6 @@
 from config_discretization import *
 from setup_thermodynamics import *
 
-#shift value for jnp.roll
-shift = -1
-
 @jax.jit
 def logmean(quantity):
     """
@@ -44,10 +41,6 @@ def Ismail_Roe_flux(u):
         NOTE: internal energy should be computed consistently throughout all code as difference total energy and kinetic energy or from EoS
     """
     T = thermodynamics.solve_temperature_from_conservative(u)
-
-    #rho_e = u[2] - 0.5 * u[1]**2 / u[0] 
-    #p = (gamma - 1) * rho_e
-
     p = pressure(u[0], T)
 
     z = jnp.ones((3, num_ghost_cells_flux))
@@ -66,7 +59,20 @@ def Ismail_Roe_flux(u):
     F3 = 0.5 * (z2m / z1m) * ((gamma + 1) / (gamma - 1) * (z3ln / z1ln) + F2)
     return jnp.array([F1,F2,F3], dtype=DTYPE)
 
+@jax.jit
+def naive_flux(u):
+    rho_mean = a_mean(u[0])
+    m_mean = a_mean(u[1])
+    T = thermodynamics.solve_temperature_from_conservative(u)
+    p = pressure(u[0], T)
+    p_mean = a_mean(p)
+    E_mean = a_mean(u[2])
+    u_mean = a_mean(u[1] / u[0])
 
+    F1 = rho_mean * u_mean
+    F2 = m_mean * u_mean + p_mean
+    F3 = u_mean * (E_mean + p_mean)
+    return jnp.array([F1,F2,F3], dtype=DTYPE)
 
 def return_flux(which_flux):
     """
@@ -82,5 +88,9 @@ def return_flux(which_flux):
             """
             assert(pad_width_flux == 1)
             flux = Ismail_Roe_flux
+        case "NAIVE":
+            assert(pad_width_flux == 1)
+            flux = naive_flux
+
 
     return flux

@@ -9,8 +9,9 @@ def ideal_gas(rho, T):
     """
         Specific Helmholtz energy of the ideal gas equation of state
     """
-    f = T * (molecular_dofs/2 * gas_constant - molar_entropy_ref) - molecular_dofs/2 * gas_constant * T * jnp.log(T / T_ref) + gas_constant * T * jnp.log(rho / rho_ref)
-    return f / molar_mass
+    #f = T * (molecular_dofs/2 * gas_constant - molar_entropy_ref) - molecular_dofs/2 * gas_constant * T * jnp.log(T / T_ref) + gas_constant * T * jnp.log(rho / rho_ref)
+    #return f / molar_mass
+    return T * (1 - jnp.log(T / (rho**(gamma - 1))))
 
 def return_eos(which_eos):
     """
@@ -40,7 +41,7 @@ def generate_pressure(eos):
 
     @jax.jit
     def pressure(rho, T):
-        return rho**2 * dAdrho(rho, T)  
+        return rho**2 * dAdrho(rho, T) 
     
     return pressure
 
@@ -81,7 +82,8 @@ def solve_temperature_from_pressure(rho, p):
         Solve temperature profile from density and pressure profiles in a least squares manner
     """
     #for testing this is taking as ideal
-    T = p * molar_mass / (rho * gas_constant)
+    #T = p * molar_mass / (rho * gas_constant)
+    T = p / ((gamma - 1) * rho)
     return T
 
 def solve_temperature_from_conservative(u):
@@ -89,5 +91,6 @@ def solve_temperature_from_conservative(u):
         Solve temperature profile from conservative variable profiles in a least squares manner
     """
     
-    T = (2 * molar_mass) / (molecular_dofs * gas_constant) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    #T = (2 * molar_mass) / (molecular_dofs * gas_constant) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    T = (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
     return T

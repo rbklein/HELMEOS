@@ -62,6 +62,9 @@ def plot_thermodynamic(x, u):
 
 def plot_entropy(x, u):
     eta = entropy_variables(u)
+
+    print(eta.shape)
+
     fig, ax = plt.subplots(3,1)
     ax[0].plot(x, eta[0])
     ax[1].plot(x, eta[1])

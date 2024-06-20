@@ -29,8 +29,8 @@ dx          = 2 * length / num_cells
 x           = jnp.linspace(-length + 0.5 * dx, length - 0.5 * dx, num_cells, dtype = DTYPE)
 
 #Temporal
-time_final  = 0.0001
-num_steps   = 1
+time_final  = 0.25 #0.0001
+num_steps   = 2000  #1
 dt          = time_final / num_steps
 
 #Boundary
@@ -51,9 +51,10 @@ molecular_dofs      = 5                     # Air: 5                CO2: 5
 
 gamma               = 1.4  #should be equal to 1 + 2 / molecular_dofs according to wikipedia
 
-molar_entropy_ref   = 0.0
-T_ref               = 1.0
 rho_ref             = 1.0
+T_ref               = rho_ref**(gamma-1) * molar_mass / gas_constant
+molar_entropy_ref   = 0.0
+
 
 #Numerics
 EOS         = "IDEAL"

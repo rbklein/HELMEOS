@@ -15,6 +15,6 @@ def dudt(u):
         entropy conservative flux, entropy dissipation operator and limiter
     """
     F = f_cons(padder(u,pad_width_flux))
-    D = f_diss(padder(u,pad_width_diss), lim)
-    return - ((F[:,1:] - F[:,:-1]) + (D[:,1:] - D[:,:-1])) / dx 
+    #D = f_diss(padder(u,pad_width_diss), lim)
+    return - ((F[:,1:] - F[:,:-1]) / dx) # + (D[:,1:] - D[:,:-1])) / dx 
 
