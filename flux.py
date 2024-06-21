@@ -38,7 +38,7 @@ def Ismail_Roe_flux(u):
         Computes flux of Ismail and Roe from "Affordable, 
         entropy-consistent Euler flux functions II: Entropy production at shocks"
 
-        NOTE: internal energy should be computed consistently throughout all code as difference total energy and kinetic energy or from EoS
+        Flux is entropy conservative for the ideal gas equation of state
     """
     T = thermodynamics.solve_temperature_from_conservative(u)
     p = pressure(u[0], T)

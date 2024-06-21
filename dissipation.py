@@ -80,6 +80,8 @@ def Roe_dissipation(u, limiter):
         Accurate Entropy Stable Essentially Nonoscillatory Schemes for Systems of Conservation Laws" using limiter
 
         Assumes u is padded with boundary values
+
+        Assumes ideal gas equation of state (for now)
     """
 
     #number of cell interfaces that are not on the boundary of the grid (including ghost cells)
