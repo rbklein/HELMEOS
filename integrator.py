@@ -27,6 +27,16 @@ def RK4(u, dudt):
     return u + dt / 6 * (k1 + 2 * k2 + 2 * k3 + k4)
 
 @partial(jax.jit, static_argnums = 1)
+def TVDRK3(u, dudt):
+    """
+        The classical 3-rd order TVD Runge-Kutta time integrator by Gottlieb and Shu from "Total variation diminishing Runge-Kutta schemes"
+    """
+    u1 = u + dt * dudt(u)
+    u2 = 3/4 * u + 1/4 * u1 + 1/4 * dt * dudt(u1)
+    un =  1/3 * u + 2/3 * u2 + 2/3 * dt * dudt(u2)
+    return un
+
+@partial(jax.jit, static_argnums = 1)
 def Tadmor_midpoint(u, dudt):
     """
         Locally entropy conservative Crank-Nicolsen time integrator by Tadmor with Gonzalez discrete gradient "Entropy stability theory for difference 
@@ -61,6 +71,11 @@ def return_integrator(which_integrator):
                 The classical 4-th order Runge-Kutta time integrator
             """
             integrator = RK4
+        case "TVDRK3":
+            """
+                The classical 3-rd order TVD Runge-Kutta time integrator
+            """
+            integrator = TVDRK3
         case "TADMOR":
             """
                 The locally entropy conservative modified Crank-Nicolson method by Tadmor

@@ -29,8 +29,8 @@ dx          = 2 * length / num_cells
 x           = jnp.linspace(-length + 0.5 * dx, length - 0.5 * dx, num_cells, dtype = DTYPE)
 
 #Temporal
-time_final  = 0.25 #0.0001
-num_steps   = 2000  #1
+time_final  = 0.5 #0.0001
+num_steps   = 10000  #1
 dt          = time_final / num_steps
 
 #Boundary
@@ -62,8 +62,8 @@ TEST_CASE   = "CHAN"
 FLUX        = "ISMAIL_ROE"
 LIMITER     = "MINMOD"
 DISSIPATION = "TECNO_ROE"
-INTEGRATOR  = "RK4"
-BOUNDARY    = "PERIODIC"
+INTEGRATOR  = "TVDRK3"
+BOUNDARY    = "TRANSMISSIVE"
 
 #data
 sample_rate = 10

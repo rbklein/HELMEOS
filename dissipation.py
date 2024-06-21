@@ -8,33 +8,9 @@ from functools import partial
 from config_discretization import *
 from setup_thermodynamics import *
 
+from computational import jump_vec, mul, a_mean
+
 import entropy
-import flux
-
-@jax.jit
-def jump_vec(quantity):
-    """
-        Compute jump in vector-valued quantity on grid 
-
-        Computes as many jumps as possible given the quantity
-
-        indices:
-            quantity: 0 row index, 1 grid index
-    """
-    return quantity[:,1:] - quantity[:,:-1]
-
-@jax.jit
-def mul(A,v):
-    """
-        Computes matrix vector product at each node of the grid
-
-        numpy matmul docs: 'If either argument is N-Dimensional, N > 2, it is treated as a stack of matrices residing in the last two indexes and broadcast accordingly.'
-
-        indices:
-            A: 0 row index, 1 column index, 2 grid index
-            v: 0 vector component, 1 grid index + (a dummy index to enable use of jnp.matmul)
-    """
-    return jnp.matmul(A.transpose((2,0,1)), v[:,:,None].transpose((1,0,2)))[:,:,0].transpose()
 
 @jax.jit
 def minmod(delta1, delta2):
@@ -88,16 +64,15 @@ def Roe_dissipation(u, limiter):
     num_inner_cell_interfaces = num_ghost_cells_diss - 1
 
     vel = u[1] / u[0]
-    vel_mean = flux.a_mean(vel)
+    vel_mean = a_mean(vel)
 
     T = thermodynamics.solve_temperature_from_conservative(u)
-
-    p               = pressure(u[0], T) # (gamma - 1) * (u[2] - 0.5 * u[1]**2 / u[0])
-    p_mean          = flux.a_mean(p)
-    rho_mean        = flux.a_mean(u[0])
+    p               = pressure(u[0], T) 
+    p_mean          = a_mean(p)
+    rho_mean        = a_mean(u[0])
     speed_of_sound  = jnp.sqrt(gamma * p_mean / rho_mean)
 
-    E_mean = flux.a_mean(u[2])
+    E_mean = a_mean(u[2])
     H_mean = (E_mean + p_mean) / rho_mean
 
     eta         = entropy.entropy_variables(u)

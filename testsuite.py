@@ -17,5 +17,9 @@ def return_case(test_case):
             initial_rho = lambda x, params: 2 + 0.5 * jnp.exp(-100 * x**2)      
             initial_v = lambda x, params: 1/10 * jnp.exp(-100 * x**2)           
             initial_p = lambda x, params: initial_rho(x, params)**gamma  
+        case "SOD":
+            initial_rho = lambda x, params: jnp.where(x < 0, 1, 0.125)
+            initial_v = lambda x, params: jnp.where(x < 0, 0, 0)
+            initial_p = lambda x, params: jnp.where(x < 0, 1, 0.1)
 
     return initial_rho, initial_v, initial_p

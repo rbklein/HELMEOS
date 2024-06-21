@@ -4,14 +4,9 @@
 
 from config_discretization import *
 
-import entropy
+from computational import zero_by_zero
 
-@jax.jit
-def zero_by_zero(num, den):
-    """
-        Robust division operator for 0/0 = 0 scenarios (thanks to Alessia)
-    """
-    return den * (jnp.sqrt(2) * num) / (jnp.sqrt(den**4 + jnp.maximum(den, 1e-14)**4))
+import entropy
 
 @jax.jit
 def Gonzalez(u1,u2):
@@ -20,7 +15,7 @@ def Gonzalez(u1,u2):
     """
     u_mean = 0.5 * (u1 + u2)
     u_jump = u1 - u2
-    s_jump = entropy.entropy(u1) - entropy.entropy(u2)
+    s_jump = entropy.PDE_entropy(u1) - entropy.PDE_entropy(u2)
 
     #computes squared norm at each point in grid
     u_norm_squared = jnp.sum(u_jump**2, axis=0)

@@ -35,7 +35,7 @@ def plot_thermodynamic(x, u):
     rho = u[0]
     T = thermodynamics.solve_temperature_from_conservative(u)
     p = pressure(rho, T)
-    s = entropy(rho, T)
+    s = physical_entropy(rho, T)
     e = internal_energy(rho, T)
     
     fig, ax = plt.subplots(4,1)

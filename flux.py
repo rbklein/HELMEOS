@@ -7,30 +7,10 @@
 from config_discretization import *
 from setup_thermodynamics import *
 
-@jax.jit
-def logmean(quantity):
-    """
-        Robust computation of the logarithmic mean from Ismail and Roe "Affordable, 
-        entropy-consistent Euler flux functions II: Entropy production at shocks"
-    """
-    a = quantity[1:]
-    b = quantity[:-1]
+from computational import logmean, a_mean
 
-    d = a / b
-    f = (d - 1) / (d + 1)
-    u = f**2
-    F = jnp.where(u < 0.001, 1 + u / 3 + u**2 / 5 + u**3 / 7, jnp.log(d) / 2 / f)
-    return (a + b) / (2 * F)
+import entropy
 
-@jax.jit
-def a_mean(quantity):
-    """
-        Computes arithmetic mean of quantity 
-
-        The mean is taken between as many cells as possible without exceeding array dimensions
-    """
-
-    return 0.5 * (quantity[1:] + quantity[:-1])
 
 @jax.jit
 def Ismail_Roe_flux(u):
@@ -94,3 +74,6 @@ def return_flux(which_flux):
 
 
     return flux
+
+if __name__ == "__main__":
+    print(entropy(2,2))

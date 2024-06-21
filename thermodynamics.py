@@ -11,7 +11,7 @@ def ideal_gas(rho, T):
     """
     #f = T * (molecular_dofs/2 * gas_constant - molar_entropy_ref) - molecular_dofs/2 * gas_constant * T * jnp.log(T / T_ref) + gas_constant * T * jnp.log(rho / rho_ref)
     #return f / molar_mass
-    return T * (1 - jnp.log(T / (rho**(gamma - 1))))
+    return T / (gamma - 1) * (1 - jnp.log(T / (rho**(gamma - 1))))
 
 def return_eos(which_eos):
     """
@@ -83,7 +83,7 @@ def solve_temperature_from_pressure(rho, p):
     """
     #for testing this is taking as ideal
     #T = p * molar_mass / (rho * gas_constant)
-    T = p / ((gamma - 1) * rho)
+    T = p / rho
     return T
 
 def solve_temperature_from_conservative(u):
@@ -92,5 +92,5 @@ def solve_temperature_from_conservative(u):
     """
     
     #T = (2 * molar_mass) / (molecular_dofs * gas_constant) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
-    T = (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
     return T
