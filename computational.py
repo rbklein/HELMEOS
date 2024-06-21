@@ -1,3 +1,7 @@
+"""
+    Contains functions for generic and frequently recurring mathematical operations
+"""
+
 from config_discretization import *
 
 @jax.jit
@@ -13,6 +17,33 @@ def jump_vec(quantity):
     return quantity[:,1:] - quantity[:,:-1]
 
 @jax.jit
+def jump(quantity):
+    """
+        Compute jump in scalar-valued quantity on grid 
+
+        Computes as many jumps as possible given the quantity
+
+        indices:
+            quantity: 0 row index, 1 grid index
+    """
+    return quantity[1:] - quantity[:-1]
+
+@jax.jit
+def norm2_nodal(u):
+    """
+        Computes the squared norm of a vector in every mesh point
+    """
+    return jnp.sum(u**2, axis = 0)
+
+@jax.jit
+def inner_nodal(u,v):
+    """
+        Computes the inner product of two vectors in every mesh point
+    """
+    return jnp.sum(u*v, axis = 0)
+
+
+@jax.jit
 def mul(A,v):
     """
         Computes matrix vector product at each node of the grid
@@ -26,7 +57,7 @@ def mul(A,v):
     return jnp.matmul(A.transpose((2,0,1)), v[:,:,None].transpose((1,0,2)))[:,:,0].transpose()
 
 @jax.jit
-def logmean(quantity):
+def log_mean(quantity):
     """
         Robust computation of the logarithmic mean from Ismail and Roe "Affordable, 
         entropy-consistent Euler flux functions II: Entropy production at shocks"
@@ -41,7 +72,7 @@ def logmean(quantity):
     return (a + b) / (2 * F)
 
 @jax.jit
-def a_mean(quantity):
+def arith_mean(quantity):
     """
         Computes arithmetic mean of quantity 
 

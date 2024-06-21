@@ -13,6 +13,15 @@ def ideal_gas(rho, T):
     #return f / molar_mass
     return T / (gamma - 1) * (1 - jnp.log(T / (rho**(gamma - 1))))
 
+@jax.jit
+def Van_der_Waals(rho,T):
+    """
+        Specific Helmholtz energy of the Van der Waals equation of state
+
+        still using gamma - 1 = 2 / num_dofs, which only holds for ideal gas
+    """
+    return T / (2 / molecular_dofs) * (1 - jnp.log(((1 - b_VdW * rho)**(2 / molecular_dofs) * T) / (rho**(2 / molecular_dofs)))) - rho * a_VdW
+
 def return_eos(which_eos):
     """
         Return the specific Helmholtz free energy function given by which_eos
@@ -23,7 +32,11 @@ def return_eos(which_eos):
                 The ideal gas equation of state in terms of its specific Helmholtz free energy
             """
             eos = ideal_gas
-
+        case "VAN_DER_WAALS":
+            """
+                The Van der Waals equations of state in terms of its specific Helmholtz free energy
+            """
+            eos = Van_der_Waals
     return eos
 
 def generate_pressure(eos):
@@ -83,7 +96,8 @@ def solve_temperature_from_pressure(rho, p):
     """
     #for testing this is taking as ideal
     #T = p * molar_mass / (rho * gas_constant)
-    T = p / rho
+    #T = p / rho
+    T = (p + a_VdW * rho**2) * (1 / rho - b_VdW) 
     return T
 
 def solve_temperature_from_conservative(u):
@@ -92,5 +106,6 @@ def solve_temperature_from_conservative(u):
     """
     
     #T = (2 * molar_mass) / (molecular_dofs * gas_constant) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
-    T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    #T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    T = ((u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2) + a_VdW * u[0]) / (molecular_dofs / 2)
     return T

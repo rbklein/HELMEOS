@@ -8,7 +8,7 @@ from functools import partial
 from config_discretization import *
 from setup_thermodynamics import *
 
-from computational import jump_vec, mul, a_mean
+from computational import jump_vec, mul, arith_mean
 
 import entropy
 
@@ -64,15 +64,15 @@ def Roe_dissipation(u, limiter):
     num_inner_cell_interfaces = num_ghost_cells_diss - 1
 
     vel = u[1] / u[0]
-    vel_mean = a_mean(vel)
+    vel_mean = arith_mean(vel)
 
     T = thermodynamics.solve_temperature_from_conservative(u)
     p               = pressure(u[0], T) 
-    p_mean          = a_mean(p)
-    rho_mean        = a_mean(u[0])
+    p_mean          = arith_mean(p)
+    rho_mean        = arith_mean(u[0])
     speed_of_sound  = jnp.sqrt(gamma * p_mean / rho_mean)
 
-    E_mean = a_mean(u[2])
+    E_mean = arith_mean(u[2])
     H_mean = (E_mean + p_mean) / rho_mean
 
     eta         = entropy.entropy_variables(u)
