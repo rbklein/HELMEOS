@@ -18,7 +18,10 @@ def Van_der_Waals(rho,T):
     """
         Specific Helmholtz energy of the Van der Waals equation of state
 
-        still using gamma - 1 = 2 / num_dofs, which only holds for ideal gas
+        critical point:
+            - T_c   = 8/27 * a/b
+            - rho_c = 1/3 * 1/b
+            - p_c   = 1/27 * a/b^2 
     """
     return T / (2 / molecular_dofs) * (1 - jnp.log(((1 - b_VdW * rho)**(2 / molecular_dofs) * T) / (rho**(2 / molecular_dofs)))) - rho * a_VdW
 
@@ -38,6 +41,29 @@ def return_eos(which_eos):
             """
             eos = Van_der_Waals
     return eos
+
+def set_critical_points(which_eos):
+    """
+        Returns the critical points for a chosen Helmholtz free energy
+    """
+    match which_eos:
+        case "IDEAL":
+            """
+                Ideal gas law: has no critical point thus set ones
+            """
+            rho_c = 1.0
+            T_c = 1.0
+            p_c = 1.0
+        case "VAN_DER_WAALS":
+            """
+                Van der waals critical point
+            """
+            rho_c = 1/3 * 1/b_VdW
+            T_c   = 8/27 * a_VdW/b_VdW
+            p_c   = 1/27 * a_VdW/b_VdW**2 
+    
+    return rho_c, T_c, p_c
+
 
 def generate_pressure(eos):
     """
@@ -92,7 +118,7 @@ def generate_internal_energy(eos):
 
 def solve_temperature_from_pressure(rho, p):
     """
-        Solve temperature profile from density and pressure profiles in a least squares manner
+        Solve temperature profile from density and pressure profiles
     """
     #for testing this is taking as ideal
     #T = p * molar_mass / (rho * gas_constant)
@@ -102,10 +128,10 @@ def solve_temperature_from_pressure(rho, p):
 
 def solve_temperature_from_conservative(u):
     """
-        Solve temperature profile from conservative variable profiles in a least squares manner
+        Solve temperature profile from conservative variable profiles
     """
-    
     #T = (2 * molar_mass) / (molecular_dofs * gas_constant) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
     #T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
     T = ((u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2) + a_VdW * u[0]) / (molecular_dofs / 2)
     return T
+

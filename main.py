@@ -1,5 +1,5 @@
 """
-    Main file containing a JAX-based solution algorithm of the shallow water equations on a periodic domain
+    Main file containing a JAX-based solution algorithm of the compressible Euler equations with real gas thermodynamics
 """
 
 from setup import *
@@ -9,11 +9,17 @@ import plot
 
 u = jnp.copy(u_0)
 
+"""
 plot.plot_conserved(x, u)
 plot.plot_thermodynamic(x, u)
 plot.plot_entropy(x, u)
 plot.show()
+"""
 
+plot.plot_pv(u, True)
+plot.show()
+
+'''
 time_index = 0
 while time_index < num_steps:
     u = step(u, FOM.dudt)
@@ -25,4 +31,4 @@ while time_index < num_steps:
 plot.plot_conserved(x, u)
 plot.plot_thermodynamic(x, u)
 plot.show()
-
+'''

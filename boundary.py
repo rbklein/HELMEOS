@@ -1,5 +1,7 @@
 """
     Implements boundary conditions
+
+    Boundary conditions (except for periodic) are typically not entropy stable therefore accumulation of entropy can take place at nontrivial boundaries
 """
 
 from functools import partial

@@ -7,6 +7,57 @@ import matplotlib.pyplot as plt
 from setup_thermodynamics import *
 from entropy import entropy_variables
 
+import Maxwell
+
+def plot_pv(points = [], VLE = False):
+    """
+        Plot a p-v diagram for the reduced van der waals equations (nondimensionalized w.r.t. critical point)
+
+        If points is a 2d-array it will be plotted as set of points in the p-v plane
+    """
+    num_points_plot = 10000
+
+    T_normal = jnp.linspace(0.3, 1.7, 15)
+    v_normal = jnp.linspace(1/3+1e-2, 100, num_points_plot)
+    p_vT = jax.jit(lambda v, T: pressure(1/v * rho_c, T * T_c) / p_c)
+
+    fig, ax = plt.subplots()
+
+    count = 0
+    for T in T_normal:
+        lcolor = [0.5,0.5,0.5]
+        lwidth = 0.5
+        if count == 7:
+            lcolor = 'r'
+            lwidth = 2.0
+        if count == 6:
+            lcolor = 'b'
+            lwidth = 2.0
+        p = p_vT(v_normal, T * jnp.ones(num_points_plot))
+        ax.semilogx(v_normal, p, linewidth=lwidth, color=lcolor)
+        count += 1
+
+    if points is not []:
+        T = thermodynamics.solve_temperature_from_conservative(points)
+        p_normal = pressure(points[0], T) / p_c
+        v_normal = rho_c / points[0]
+        ax.scatter(v_normal, p_normal, marker = '+')
+
+    ax.semilogx(1,1,'ro', markersize = 10)
+
+    ax.set_xlim(1./3+1e-2,20)
+    ax.set_ylim(1e-3,2)
+    ax.set_xlabel("reduced specific volume $v_r$")
+    ax.set_ylabel("reduced pressure $p_r$")
+
+    if VLE:
+        psat, v1, v2, v, vss, pss = Maxwell.solve_VLE_pressure_in_interval(T_normal[6])
+        print(psat, v1, v2)
+        ax.semilogx([v1, v2], [psat, psat], 'g', linewidth=2)
+        ax.semilogx(v, psat * jnp.ones(v.shape), marker = '+')
+        ax.plot(vss, pss)
+
+
 def plot_conserved(x, u):
     """
         Plots the water height and discharge
@@ -85,3 +136,5 @@ def show():
         Shows all generated figures on screen
     """
     plt.show()
+
+

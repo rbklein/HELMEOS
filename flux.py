@@ -37,13 +37,11 @@ def Gonzalez_flux(u):
     jump_psi    = jump(psi)
 
     f_eta_inner = inner_nodal(F_mean, jump_eta) 
-    eta_norm    = norm2_nodal(jump_eta) 
+    eta_norm    = jnp.where(norm2_nodal(jump_eta) == 0.0, 1e-14, jnp.sqrt(norm2_nodal(jump_eta)))  
 
     factor = zero_by_zero(jump_psi - f_eta_inner, eta_norm)
 
     return F_mean + factor[None,:] * jump_eta
-
-
 
 @jax.jit
 def Ismail_Roe_flux(u):

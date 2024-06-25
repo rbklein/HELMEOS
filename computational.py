@@ -2,6 +2,9 @@
     Contains functions for generic and frequently recurring mathematical operations
 """
 
+import numpy as np
+import numpy.polynomial.legendre as leg
+
 from config_discretization import *
 
 @jax.jit
@@ -36,12 +39,25 @@ def norm2_nodal(u):
     return jnp.sum(u**2, axis = 0)
 
 @jax.jit
+def norm2(u):
+    """
+        Computes the squared norm of a vector on the whole grid
+    """
+    return jnp.sum(norm2_nodal(u))
+
+@jax.jit
 def inner_nodal(u,v):
     """
         Computes the inner product of two vectors in every mesh point
     """
     return jnp.sum(u*v, axis = 0)
 
+@jax.jit
+def inner(u,v):
+    """
+        Computes the inner product between two vector on the whole grid
+    """
+    return jnp.sum(inner_nodal(u,v))
 
 @jax.jit
 def mul(A,v):
@@ -87,3 +103,42 @@ def zero_by_zero(num, den):
         Robust division operator for 0/0 = 0 scenarios (thanks to Alessia)
     """
     return den * (jnp.sqrt(2) * num) / (jnp.sqrt(den**4 + jnp.maximum(den, 1e-14)**4))
+
+
+
+
+'''
+def find_real_roots_in_interval(a,b,f):
+    """
+        Finds roots of a scalar-valued, univariate function f in interval [a,b] by fitting a polynomial of arbitrary degree (max 100)
+    """
+    x = np.linspace(a, b, 1000)
+    y = f(x)
+
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+
+    plt.semilogx(x,y)
+    plt.show()
+
+    precision_threshold = 1e-12 
+    degree              = 1
+    max_degree          = 100  
+    fitting_error       = np.inf
+
+    while fitting_error > precision_threshold and degree <= max_degree:
+        coefficients    = leg.legfit(x, y, degree)
+        y_fit           = leg.legval(x, coefficients)
+        fitting_error   = np.linalg.norm(y - y_fit)
+        
+        #print(f"Degree: {degree}, Fitting error: {fitting_error}")
+
+        degree += 1
+
+        roots                   = leg.legroots(coefficients)
+        real_roots              = roots[np.isreal(roots)].real
+        real_roots_in_interval  = real_roots[(real_roots >= a) & (real_roots <= b)]
+
+    return real_roots_in_interval
+'''
