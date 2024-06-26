@@ -3,7 +3,7 @@
 """
 
 import numpy as np
-import numpy.polynomial.legendre as leg
+from scipy.spatial import ConvexHull
 
 from config_discretization import *
 
@@ -104,41 +104,23 @@ def zero_by_zero(num, den):
     """
     return den * (jnp.sqrt(2) * num) / (jnp.sqrt(den**4 + jnp.maximum(den, 1e-14)**4))
 
-
-
-
-'''
-def find_real_roots_in_interval(a,b,f):
+def convex_envelope(x, fs):
     """
-        Finds roots of a scalar-valued, univariate function f in interval [a,b] by fitting a polynomial of arbitrary degree (max 100)
+        Compute indices of the lower convex envelope of a function, code adapted from:
+
+            "https://gist.github.com/parsiad/56a68c96bd3d300cb92f0c03c68198ee"
     """
-    x = np.linspace(a, b, 1000)
-    y = f(x)
-
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-
-    plt.semilogx(x,y)
-    plt.show()
-
-    precision_threshold = 1e-12 
-    degree              = 1
-    max_degree          = 100  
-    fitting_error       = np.inf
-
-    while fitting_error > precision_threshold and degree <= max_degree:
-        coefficients    = leg.legfit(x, y, degree)
-        y_fit           = leg.legval(x, coefficients)
-        fitting_error   = np.linalg.norm(y - y_fit)
-        
-        #print(f"Degree: {degree}, Fitting error: {fitting_error}")
-
-        degree += 1
-
-        roots                   = leg.legroots(coefficients)
-        real_roots              = roots[np.isreal(roots)].real
-        real_roots_in_interval  = real_roots[(real_roots >= a) & (real_roots <= b)]
-
-    return real_roots_in_interval
-'''
+    N = fs.shape[0]
+    
+    fs_pad = np.empty(N+2)
+    fs_pad[1:-1], fs_pad[0], fs_pad[-1] = fs, np.max(fs) + 1.0, np.max(fs) + 1.0
+    
+    x_pad = np.empty(N+2)
+    x_pad[1:-1], x_pad[0], x_pad[-1] = x, x[0], x[-1]
+    
+    epi = np.column_stack((x_pad, fs_pad))
+    hull = ConvexHull(epi)
+    result = [v-1 for v in hull.vertices if 0 < v <= N]
+    result.sort()
+    
+    return jnp.array(result, dtype=jnp.int32)

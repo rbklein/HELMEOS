@@ -15,27 +15,27 @@ def plot_pv(points = [], VLE = False):
 
         If points is a 2d-array it will be plotted as set of points in the p-v plane
     """
-    num_points_plot = 10000
+    num_points_plot = 1000
 
-    T_normal = jnp.linspace(0.3, 1.7, 15)
-    v_normal = jnp.linspace(1/3+1e-2, 100, num_points_plot)
+    T_normal = jnp.linspace(0.6, 1.7, 14)
+    v_normal = jnp.logspace(jnp.log10(1/3+1e-2), jnp.log10(100), num_points_plot)
     p_vT = jax.jit(lambda v, T: pressure(1/v * rho_c, T * T_c) / p_c)
 
     fig, ax = plt.subplots()
 
-    count = 0
     for T in T_normal:
         lcolor = [0.5,0.5,0.5]
         lwidth = 0.5
-        if count == 7:
-            lcolor = 'r'
-            lwidth = 2.0
-        if count == 6:
-            lcolor = 'b'
-            lwidth = 2.0
         p = p_vT(v_normal, T * jnp.ones(num_points_plot))
         ax.semilogx(v_normal, p, linewidth=lwidth, color=lcolor)
-        count += 1
+
+    T = 1
+    p = p_vT(v_normal, T * jnp.ones(num_points_plot))
+
+    lcolor = 'r'
+    lwidth = 2.0
+    ax.semilogx(v_normal, p, linewidth=lwidth, color=lcolor)
+
 
     if points is not []:
         T = thermodynamics.solve_temperature_from_conservative(points)
@@ -46,16 +46,36 @@ def plot_pv(points = [], VLE = False):
     ax.semilogx(1,1,'ro', markersize = 10)
 
     ax.set_xlim(1./3+1e-2,20)
-    ax.set_ylim(1e-3,2)
+    ax.set_ylim(0,2)
     ax.set_xlabel("reduced specific volume $v_r$")
     ax.set_ylabel("reduced pressure $p_r$")
 
     if VLE:
-        psat, v1, v2, v, vss, pss = Maxwell.solve_VLE_pressure_in_interval(T_normal[6])
-        print(psat, v1, v2)
-        ax.semilogx([v1, v2], [psat, psat], 'g', linewidth=2)
-        ax.semilogx(v, psat * jnp.ones(v.shape), marker = '+')
-        ax.plot(vss, pss)
+        plot_VLE(fig, ax)
+
+def plot_VLE(fig, ax):
+    """
+        Add the VLE region to an existing p-v plot
+    """
+    T_plot = jnp.linspace(0.6, 0.98, 20)
+    T_plot = jnp.flip(T_plot)
+
+    p_VLE_arr   = [1.0]
+    v1_arr      = [1.0]
+    v2_arr      = [1.0]
+
+    for T in T_plot:
+        p_VLE, v1, v2 = Maxwell.solve_VLE_pressure_in_interval(T, 0.01, (1 / (b_VdW * rho_c)))
+
+        p_VLE_arr.append(p_VLE)
+        v1_arr.append(v1)
+        v2_arr.append(v2)
+
+    lcolor = 'b'
+    lwidth = 2.0
+
+    ax.plot(v1_arr, p_VLE_arr, '-o', linewidth=lwidth, color=lcolor)
+    ax.plot(v2_arr, p_VLE_arr, '-o', linewidth=lwidth, color=lcolor)
 
 
 def plot_conserved(x, u):
