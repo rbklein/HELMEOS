@@ -11,7 +11,7 @@ def PDE_entropy(u):
     """
         Computes the PDE entropy of the shallow water equations
     """
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     s = physical_entropy(u[0], T)
     return - u[0] * s
 
@@ -33,7 +33,7 @@ def entropy_variables(u):
     """
         Computes the entropy variables from the conserved variables of the shallow water equations
     """
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     s = physical_entropy(u[0], T)
     p = pressure(u[0], T)
     
@@ -48,7 +48,7 @@ def entropy_flux_potential(u):
     """
         Computes the entropy flux potential for an arbitrary equation of state
     """
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     p = pressure(u[0], T)
     return (u[1] * p) / (u[0] * T)
 

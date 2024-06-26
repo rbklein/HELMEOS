@@ -31,7 +31,7 @@ v_0     = initial_v(x, initial_condition_params)
 p_0     = initial_p(x, initial_condition_params)
 
 m_0     = rho_0 * v_0
-T_0     = thermodynamics.solve_temperature_from_pressure(rho_0, p_0)
+T_0     = T_from_p(rho_0, p_0)
 E_0     = rho_0 * internal_energy(rho_0, T_0) + 0.5 * rho_0 * v_0**2
 
 u_0     = jnp.array([rho_0, m_0, E_0], dtype=DTYPE)

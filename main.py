@@ -9,17 +9,14 @@ import plot
 
 u = jnp.copy(u_0)
 
-"""
 plot.plot_conserved(x, u)
 plot.plot_thermodynamic(x, u)
 plot.plot_entropy(x, u)
-plot.show()
-"""
 
 plot.plot_pv(u, True)
 plot.show()
 
-'''
+
 time_index = 0
 while time_index < num_steps:
     u = step(u, FOM.dudt)
@@ -30,5 +27,6 @@ while time_index < num_steps:
 
 plot.plot_conserved(x, u)
 plot.plot_thermodynamic(x, u)
+plot.plot_pv(u, True)
 plot.show()
-'''
+

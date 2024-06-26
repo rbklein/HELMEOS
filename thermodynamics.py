@@ -9,8 +9,6 @@ def ideal_gas(rho, T):
     """
         Specific Helmholtz energy of the ideal gas equation of state
     """
-    #f = T * (molecular_dofs/2 * gas_constant - molar_entropy_ref) - molecular_dofs/2 * gas_constant * T * jnp.log(T / T_ref) + gas_constant * T * jnp.log(rho / rho_ref)
-    #return f / molar_mass
     return T / (gamma - 1) * (1 - jnp.log(T / (rho**(gamma - 1))))
 
 @jax.jit
@@ -64,7 +62,6 @@ def set_critical_points(which_eos):
     
     return rho_c, T_c, p_c
 
-
 def generate_pressure(eos):
     """
         Generates a function for thermodynamic pressure from the specific Helmholtz free energy function
@@ -116,7 +113,80 @@ def generate_internal_energy(eos):
     
     return internal_energy
 
-def solve_temperature_from_pressure(rho, p):
+@jax.jit
+def T_from_p_ideal(rho, p):
+    """
+        Solve temperature profile from density and pressure for ideal gas
+    """
+    T = p / rho
+    return T
+
+@jax.jit
+def T_from_p_Van_der_Waals(rho, p):
+    """
+        Solve temperature profile from density and pressure for Van der Waals gas
+    """
+    T = (p + a_VdW * rho**2) * (1 / rho - b_VdW) 
+    return T
+
+def set_T_from_p(which_eos):
+    """
+        Return a function to compute temperature from the density and pressure using some equation of state
+    """
+    match which_eos:
+        case "IDEAL":
+            """
+                The ideal gas equation of state
+            """
+            T_from_p = T_from_p_ideal
+        case "VAN_DER_WAALS":
+            """
+                The Van der Waals equation of state
+            """
+            T_from_p = T_from_p_Van_der_Waals
+
+    return T_from_p
+
+@jax.jit
+def T_from_u_ideal(u):
+    """
+        Solve temperature profile from conservative variable profiles for ideal gas
+    """
+    T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
+    return T
+
+@jax.jit
+def T_from_u_Van_der_Waals(u):
+    """
+        Solve temperature profile from conservative variable profiles for Van der Waals gas
+    """
+    T = ((u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2) + a_VdW * u[0]) / (molecular_dofs / 2)
+    return T
+
+
+def set_T_from_u(which_eos):
+    """
+        Return a function to compute temperature from the conservative variables using some equation of state
+    """
+    match which_eos:
+        case "IDEAL":
+            """
+                The ideal gas equation of state
+            """
+            T_from_u = T_from_u_ideal
+        case "VAN_DER_WAALS":
+            """
+                The Van der Waals equation of state
+            """
+            T_from_u = T_from_u_Van_der_Waals
+
+    return T_from_u
+
+
+
+
+'''
+def T_from_p(rho, p):
     """
         Solve temperature profile from density and pressure profiles
     """
@@ -125,8 +195,10 @@ def solve_temperature_from_pressure(rho, p):
     #T = p / rho
     T = (p + a_VdW * rho**2) * (1 / rho - b_VdW) 
     return T
+'''
 
-def solve_temperature_from_conservative(u):
+'''
+def T_from_u(u):
     """
         Solve temperature profile from conservative variable profiles
     """
@@ -134,4 +206,4 @@ def solve_temperature_from_conservative(u):
     #T = (gamma - 1) * (u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2)
     T = ((u[2] / u[0] - 0.5 * u[1]**2 / u[0]**2) + a_VdW * u[0]) / (molecular_dofs / 2)
     return T
-
+'''

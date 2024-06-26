@@ -32,21 +32,19 @@ def plot_pv(points = [], VLE = False):
     T = 1
     p = p_vT(v_normal, T * jnp.ones(num_points_plot))
 
-    lcolor = 'r'
+    lcolor = 'tab:red'
     lwidth = 2.0
     ax.semilogx(v_normal, p, linewidth=lwidth, color=lcolor)
-
+    ax.semilogx(1,1,'o', markersize = 10, color=lcolor)
 
     if points is not []:
-        T = thermodynamics.solve_temperature_from_conservative(points)
+        T = T_from_u(points)
         p_normal = pressure(points[0], T) / p_c
         v_normal = rho_c / points[0]
-        ax.scatter(v_normal, p_normal, marker = '+')
-
-    ax.semilogx(1,1,'ro', markersize = 10)
+        ax.scatter(v_normal, p_normal, marker = '+', color = 'tab:orange')
 
     ax.set_xlim(1./3+1e-2,20)
-    ax.set_ylim(0,2)
+    ax.set_ylim(0,4)
     ax.set_xlabel("reduced specific volume $v_r$")
     ax.set_ylabel("reduced pressure $p_r$")
 
@@ -57,7 +55,7 @@ def plot_VLE(fig, ax):
     """
         Add the VLE region to an existing p-v plot
     """
-    T_plot = jnp.linspace(0.6, 0.98, 20)
+    T_plot = jnp.linspace(0.6, 0.99, 20)
     T_plot = jnp.flip(T_plot)
 
     p_VLE_arr   = [1.0]
@@ -71,11 +69,11 @@ def plot_VLE(fig, ax):
         v1_arr.append(v1)
         v2_arr.append(v2)
 
-    lcolor = 'b'
-    lwidth = 2.0
+    lcolor = 'tab:blue'
+    lwidth = 1.5
 
-    ax.plot(v1_arr, p_VLE_arr, '-o', linewidth=lwidth, color=lcolor)
-    ax.plot(v2_arr, p_VLE_arr, '-o', linewidth=lwidth, color=lcolor)
+    ax.plot(v1_arr, p_VLE_arr, '-+', linewidth=lwidth, color=lcolor)
+    ax.plot(v2_arr, p_VLE_arr, '-+', linewidth=lwidth, color=lcolor)
 
 
 def plot_conserved(x, u):
@@ -92,9 +90,6 @@ def plot_conserved(x, u):
     ax[1].set_ylabel(r'$m$')
     ax[2].set_xlabel(r'$x$')
     ax[2].set_ylabel(r'$E$')
-    #ax[0].set_title('Density')
-    #ax[1].set_title('Momentum')
-    #ax[2].set_title('Total energy')
     ax[0].grid()
     ax[1].grid()
     ax[2].grid()
@@ -104,7 +99,7 @@ def plot_primitive(x, u):
 
 def plot_thermodynamic(x, u):
     rho = u[0]
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     p = pressure(rho, T)
     s = physical_entropy(rho, T)
     e = internal_energy(rho, T)
@@ -122,10 +117,6 @@ def plot_thermodynamic(x, u):
     ax[2].set_ylabel(r'$e$')
     ax[3].set_xlabel(r'$x$')
     ax[3].set_ylabel(r'$T$')
-    #ax[0].set_title('Pressure')
-    #ax[1].set_title('Entropy')
-    #ax[2].set_title('Internal \n energy')
-    #ax[3].set_title('Temperature')
     ax[0].grid()
     ax[1].grid()
     ax[2].grid()
@@ -134,9 +125,8 @@ def plot_thermodynamic(x, u):
 def plot_entropy(x, u):
     eta = entropy_variables(u)
 
-    print(eta.shape)
-
     fig, ax = plt.subplots(3,1)
+
     ax[0].plot(x, eta[0])
     ax[1].plot(x, eta[1])
     ax[2].plot(x, eta[2])

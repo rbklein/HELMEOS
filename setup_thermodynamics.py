@@ -12,4 +12,7 @@ pressure            = thermodynamics.generate_pressure(eos)
 internal_energy     = thermodynamics.generate_internal_energy(eos)
 physical_entropy    = thermodynamics.generate_entropy(eos)
 
+T_from_p            = thermodynamics.set_T_from_p(EOS)
+T_from_u            = thermodynamics.set_T_from_u(EOS)
+
 rho_c, T_c, p_c     = thermodynamics.set_critical_points(EOS)

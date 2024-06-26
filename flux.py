@@ -20,7 +20,7 @@ def Gonzalez_flux(u):
     m_mean = arith_mean(u[1])
     E_mean = arith_mean(u[2])
 
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     p = pressure(u[0], T)
     p_mean = arith_mean(p)
 
@@ -37,7 +37,7 @@ def Gonzalez_flux(u):
     jump_psi    = jump(psi)
 
     f_eta_inner = inner_nodal(F_mean, jump_eta) 
-    eta_norm    = jnp.where(norm2_nodal(jump_eta) == 0.0, 1e-14, jnp.sqrt(norm2_nodal(jump_eta)))  
+    eta_norm    = jnp.sqrt(norm2_nodal(jump_eta)) #jnp.where(norm2_nodal(jump_eta) == 0.0, 1e-14, jnp.sqrt(norm2_nodal(jump_eta)))  
 
     factor = zero_by_zero(jump_psi - f_eta_inner, eta_norm)
 
@@ -51,7 +51,7 @@ def Ismail_Roe_flux(u):
 
         Flux is entropy conservative for the ideal gas equation of state
     """
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     p = pressure(u[0], T)
 
     z = jnp.ones((3, num_ghost_cells_flux))
@@ -74,7 +74,7 @@ def Ismail_Roe_flux(u):
 def naive_flux(u):
     rho_mean = arith_mean(u[0])
     m_mean = arith_mean(u[1])
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T = T_from_u(u)
     p = pressure(u[0], T)
     p_mean = arith_mean(p)
     E_mean = arith_mean(u[2])

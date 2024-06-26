@@ -66,7 +66,7 @@ def Roe_dissipation(u, limiter):
     vel = u[1] / u[0]
     vel_mean = arith_mean(vel)
 
-    T = thermodynamics.solve_temperature_from_conservative(u)
+    T               = T_from_u(u)
     p               = pressure(u[0], T) 
     p_mean          = arith_mean(p)
     rho_mean        = arith_mean(u[0])
