@@ -62,16 +62,3 @@ BOUNDARY    = "TRANSMISSIVE"
 
 #data
 sample_rate = 10
-
-
-
-
-
-
-"""
-#gas_constant        = 8.314472
-#molar_mass          = 28.96e-3              # Air: 28.96 g/mol      CO2: 44.01e-3 g/mol     
-#rho_ref             = 1.0
-#T_ref               = rho_ref**(gamma-1) * molar_mass / gas_constant
-#molar_entropy_ref   = 0.0
-"""

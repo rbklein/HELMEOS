@@ -4,6 +4,7 @@
 
 from config_discretization import *
 
+from functools import partial
 from computational import zero_by_zero
 
 import entropy
@@ -32,4 +33,6 @@ def Gonzalez(u1,u2):
     eta_gonzalez = eta_mean + factor[None,:] * u_jump
 
     return eta_gonzalez
+
+
 

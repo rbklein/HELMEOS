@@ -10,6 +10,19 @@ from setup_thermodynamics import *
 from computational import log_mean, arith_mean, jump_vec, jump, zero_by_zero, norm2_nodal, inner_nodal
 
 import entropy
+import thermodynamics
+
+Chandrashekar_pressure_derivative   = thermodynamics.generate_Chandrashekar_pressure_derivatives(eos)
+Chandrashekar_Gibbs_derivative      = thermodynamics.generate_Chandrashekar_Gibbs_derivative(eos)
+
+@jax.jit
+def Generalized_Chandrashekar_flux(u):
+    """
+        Entropy and kinetic energy conserving flux that generalizes the approach of Chandrashekar from
+        "Kinetic energy preserving and entropy stable finite volume schemes for compressible Euler and Navier-Stokes equations"
+    """
+    pass
+
 
 @jax.jit
 def Gonzalez_flux(u):
@@ -37,7 +50,7 @@ def Gonzalez_flux(u):
     jump_psi    = jump(psi)
 
     f_eta_inner = inner_nodal(F_mean, jump_eta) 
-    eta_norm    = jnp.sqrt(norm2_nodal(jump_eta)) #jnp.where(norm2_nodal(jump_eta) == 0.0, 1e-14, jnp.sqrt(norm2_nodal(jump_eta)))  
+    eta_norm    = norm2_nodal(jump_eta) #jnp.where(norm2_nodal(jump_eta) == 0.0, 1e-14, jnp.sqrt(norm2_nodal(jump_eta)))  
 
     factor = zero_by_zero(jump_psi - f_eta_inner, eta_norm)
 
