@@ -2,6 +2,7 @@
 An entropy stable and kinetic energy conserving solver for the compressible Euler equations using a real gas equations of state based on the Helmholtz free energy.
 
 We implement a generalized Chandrashekar flux:
+
 	f_rho 	= rho_tilde * u_mean 
 	f_m 	= f_rho * u_mean + p_tilde
 	f_E 	= f_rho * (e_tilde + p_tilde / rho_tilde + (u_mean^2 - 1/2 (u^2)_mean))
