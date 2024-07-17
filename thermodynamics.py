@@ -174,9 +174,12 @@ def generate_Chandrashekar_pressure_derivatives(eos):
     def dpTdbeta(rho,T):
         return rho**2 * dAdrho(rho, T) - rho**2 * T * d2AdrhodT(rho, T)
     
+    """
+        Input is required in the form u where u[0] = rho, u[1] = beta = 1/T
+    """
     @jax.jit
-    def Chandrashekar_pressure_derivative(rho, T):
-        return jnp.vstack((dpTdrho(rho,T), dpTdbeta(rho,T)))
+    def Chandrashekar_pressure_derivative(u):
+        return jnp.vstack((dpTdrho(u[0],1/u[1]), dpTdbeta(u[0],1/u[1])))
 
     return Chandrashekar_pressure_derivative
 
@@ -210,9 +213,12 @@ def generate_Chandrashekar_Gibbs_derivative(eos):
     def dgTdbeta(rho,T):
         return eos(rho, T) + rho * dAdrho(rho, T) - T * dAdT(rho, T) - rho * T * d2AdrhodT(rho, T)
     
+    """
+        Input is required in the form u where u[0] = rho, u[1] = beta = 1/T
+    """
     @jax.jit
-    def Chandrashekar_Gibbs_derivative(rho, T):
-        return jnp.vstack((dgTdrho(rho,T), dgTdbeta(rho,T)))
+    def Chandrashekar_Gibbs_derivative(u):
+        return jnp.vstack((dgTdrho(u[0],1/u[1]), dgTdbeta(u[0],1/u[1])))
 
     return Chandrashekar_Gibbs_derivative
 

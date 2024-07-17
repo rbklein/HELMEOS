@@ -11,9 +11,13 @@ from computational import log_mean, arith_mean, jump_vec, jump, zero_by_zero, no
 
 import entropy
 import thermodynamics
+import discrete_gradient
 
 Chandrashekar_pressure_derivative   = thermodynamics.generate_Chandrashekar_pressure_derivatives(eos)
 Chandrashekar_Gibbs_derivative      = thermodynamics.generate_Chandrashekar_Gibbs_derivative(eos)
+
+Chandrashekar_pressure  = jax.jit(lambda u: pressure(u[0],1/u[1]) * u[1])
+Chandrashekar_gibbs     = jax.jit(lambda u: gibbs_energy(u[0], 1/u[1]) * u[1])
 
 @jax.jit
 def Generalized_Chandrashekar_flux(u):
@@ -21,8 +25,31 @@ def Generalized_Chandrashekar_flux(u):
         Entropy and kinetic energy conserving flux that generalizes the approach of Chandrashekar from
         "Kinetic energy preserving and entropy stable finite volume schemes for compressible Euler and Navier-Stokes equations"
     """
-    pass
+    T       = T_from_u(u)
+    beta    = 1/T
 
+    rho_beta = jnp.vstack((u[0],beta))
+
+    d_p_beta = discrete_gradient.Gonzalez(rho_beta, Chandrashekar_pressure, Chandrashekar_pressure_derivative) #diags one for now
+    d_g_beta = discrete_gradient.Gonzalez(rho_beta, Chandrashekar_gibbs, Chandrashekar_Gibbs_derivative)
+
+    rho_mean    = d_p_beta[0] / d_g_beta[0]
+    u_mean      = arith_mean(u[1] / u[0])
+
+    F1          = rho_mean * u_mean
+
+    p           = pressure(u[0],T)
+    beta_mean   = arith_mean(beta)
+    p_mean      = arith_mean(p * beta) / beta_mean
+
+    F2          = F1 * u_mean + p_mean
+
+    u_squared_mean          = arith_mean(u[1]**2 / u[0]**2)
+    internal_energy_mean    = d_g_beta[1] - d_p_beta[1] / rho_mean
+
+    F3          = F1 * (internal_energy_mean - 0.5 * u_squared_mean) + F2 * u_mean
+
+    return jnp.array([F1,F2,F3], dtype=DTYPE)
 
 @jax.jit
 def Gonzalez_flux(u):
@@ -106,6 +133,11 @@ def return_flux(which_flux):
             - Ismail and Roe
     """
     match which_flux:
+        case "GENERALIZED_CHANDRASHEKAR":
+            """
+                Chandrashekar flux for real gasses using Gonzalez discrete gradient
+            """
+            flux = Generalized_Chandrashekar_flux
         case "GONZALEZ":
             """
                 Flux using the Gonzalez discrete gradient

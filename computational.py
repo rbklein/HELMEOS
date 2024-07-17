@@ -75,7 +75,7 @@ def mul(A,v):
 @jax.jit
 def log_mean(quantity):
     """
-        Robust computation of the logarithmic mean from Ismail and Roe "Affordable, 
+        Robust computation of the logarithmic mean for scalar from Ismail and Roe "Affordable, 
         entropy-consistent Euler flux functions II: Entropy production at shocks"
     """
     a = quantity[1:]
@@ -90,12 +90,15 @@ def log_mean(quantity):
 @jax.jit
 def arith_mean(quantity):
     """
-        Computes arithmetic mean of quantity 
+        Computes arithmetic mean of scalar quantity 
 
         The mean is taken between as many cells as possible without exceeding array dimensions
     """
 
     return 0.5 * (quantity[1:] + quantity[:-1])
+
+log_mean_vec    = jax.jit(jax.vmap(log_mean, 0, 0))
+arith_mean_vec  = jax.jit(jax.vmap(arith_mean, 0, 0))
 
 @jax.jit
 def zero_by_zero(num, den):
@@ -103,6 +106,23 @@ def zero_by_zero(num, den):
         Robust division operator for 0/0 = 0 scenarios (thanks to Alessia)
     """
     return den * (jnp.sqrt(2) * num) / (jnp.sqrt(den**4 + jnp.maximum(den, 1e-14)**4))
+
+def grad_nodal(f):
+    """
+        Returns a function to compute the gradient in every node for a function taking grid values
+
+        example target function:
+            f(u) = u[0] + 2*u[1]
+    """
+    def _f(u):
+        f_val = f(u)
+        return jnp.reshape(f_val, ())
+
+    _df = jax.grad(_f)
+
+    df = jax.jit(jax.vmap(_df, 1, 1))
+    return df
+
 
 def convex_envelope(x, fs):
     """

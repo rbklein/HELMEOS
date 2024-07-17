@@ -36,6 +36,9 @@ def TVDRK3(u, dudt):
     un =  1/3 * u + 2/3 * u2 + 2/3 * dt * dudt(u2)
     return un
 
+'''
+Momentarily disabled
+
 @partial(jax.jit, static_argnums = 1)
 def Tadmor_midpoint(u, dudt):
     """
@@ -56,7 +59,8 @@ def Tadmor_midpoint(u, dudt):
 
     #reshape new state back to matrix
     return jnp.reshape(u_new, (2,-1))
-
+'''
+    
 def return_integrator(which_integrator):
     """
         Returns the specific numerical time integration function that will be used for computations
@@ -80,6 +84,6 @@ def return_integrator(which_integrator):
             """
                 The locally entropy conservative modified Crank-Nicolson method by Tadmor
             """
-            integrator = Tadmor_midpoint
+            #integrator = Tadmor_midpoint
 
     return integrator
